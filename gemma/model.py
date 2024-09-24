@@ -301,7 +301,6 @@ class GemmaAttention(nn.Module):
         # [batch_size, n_local_heads, max_seq_len, head_dim]
         k = key.transpose(1, 2)
         v = value.transpose(1, 2)
-
         # [batch_size, n_local_heads, input_len, max_seq_len]
         q.mul_(self.scaling)
         scores = torch.matmul(q, k.transpose(2, 3))
