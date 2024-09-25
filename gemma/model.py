@@ -27,6 +27,7 @@ from gemma import tokenizer
 import pdb
 
 from .r_attention import RegularAttention
+from .acsr_helpers import create_windowed_mask
 
 class Sampler(nn.Module):
 
@@ -255,9 +256,23 @@ class GemmaAttention(nn.Module):
             self.hidden_size,
             quant=quant)
 
+        batch = 1
+        seq_length = 8192
+        head_dim = hidden_size / num_heads
+        BLOCK_SIZE_Y = 16
+        BLOCK_SIZE_X = 16
+        mask = create_windowed_mask(seq_length, 4096)
+        GPU_ID = 0
+        out_dtype = torch.float32
+        self.regular_attention = RegularAttention(
+            batch, seq_length, num_heads, head_dim,
+            mask, BLOCK_SIZE_Y, BLOCK_SIZE_X, GPU_ID, out_dtype
+        )
+
         self.attn_type = attn_type
         self.sliding_window_size = sliding_window_size
         self.attn_logit_softcapping = attn_logit_softcapping
+        self.regular_attention = False
 
     def forward(
         self,
@@ -305,6 +320,17 @@ class GemmaAttention(nn.Module):
         v = value.transpose(1, 2)
         # [batch_size, n_local_heads, input_len, max_seq_len]
         q.mul_(self.scaling)
+        ## Special code path if we compute regular attention.
+        if (
+            self.attn_type == gemma_config.AttentionType.LOCAL_SLIDING
+            and self.sliding_window_size is not None 
+            and self.regular_attention
+        ):
+            # [batch_size, n_local_heads, head_dim, max_seq_len]
+            k = k.transpose(2, 3)
+            output = self.regular_attention([q, k, v])
+            return output
+
         scores = torch.matmul(q, k.transpose(2, 3))
         if (
             self.attn_type == gemma_config.AttentionType.LOCAL_SLIDING
@@ -582,6 +608,7 @@ class GemmaForCausalLM(nn.Module):
         temperature: Union[float, None] = 0.95,
         top_p: float = 1.0,
         top_k: int = 100,
+        desired_prompt_len = 8192
     ) -> Union[str, Sequence[str]]:
         """Generates responses for given prompts using Gemma model."""
         # If a single prompt is provided, treat it as a batch of 1.
@@ -591,7 +618,7 @@ class GemmaForCausalLM(nn.Module):
 
         batch_size = len(prompts)
         prompt_tokens = [self.tokenizer.encode(prompt) for prompt in prompts]
-        min_prompt_len = min(len(p) for p in prompt_tokens)
+        min_prompt_len = max(min(len(p) for p in prompt_tokens), desired_prompt_len)
         max_prompt_len = max(len(p) for p in prompt_tokens)
         max_seq_len = max_prompt_len + output_len
         assert max_seq_len <= self.config.max_position_embeddings
