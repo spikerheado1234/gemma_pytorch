@@ -24,6 +24,8 @@ from typing import Any, List, Optional, Sequence, Tuple, Union
 from gemma import config as gemma_config
 from gemma import tokenizer
 
+import pdb
+
 from .r_attention import RegularAttention
 
 class Sampler(nn.Module):
@@ -287,7 +289,6 @@ class GemmaAttention(nn.Module):
         k_cache, v_cache = kv_cache
         k_cache.index_copy_(1, kv_write_indices, xk)
         v_cache.index_copy_(1, kv_write_indices, xv)
-
         key = k_cache
         value = v_cache
         if self.num_kv_heads != self.num_heads:

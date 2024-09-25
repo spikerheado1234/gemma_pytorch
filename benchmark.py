@@ -6,7 +6,9 @@ import time
 if __name__ == '__main__':
     ## Test inference on gemma model.
     model_config = get_config_for_2b_v2()
+    ## Make 32 bit precision and turn of logit softcapping.
     model_config.dtype = 'float32'
+    model_config.attn_logit_softcapping = None
     print(model_config)
     gemma = GemmaForCausalLM(model_config)
     ## Random input.
