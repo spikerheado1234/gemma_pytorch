@@ -257,11 +257,10 @@ class GemmaAttention(nn.Module):
             quant=quant)
 
         batch = 1
-        seq_length = 8192
-        head_dim = hidden_size / num_heads
+        seq_length = 2048
         BLOCK_SIZE_Y = 16
         BLOCK_SIZE_X = 16
-        mask = create_windowed_mask(seq_length, 4096)
+        mask = create_windowed_mask(seq_length, 1024)
         GPU_ID = 0
         out_dtype = torch.float32
         self.regular_attention = RegularAttention(
@@ -272,7 +271,7 @@ class GemmaAttention(nn.Module):
         self.attn_type = attn_type
         self.sliding_window_size = sliding_window_size
         self.attn_logit_softcapping = attn_logit_softcapping
-        self.regular_attention = False
+        self.compute_regular_attention = False
 
     def forward(
         self,
@@ -324,7 +323,7 @@ class GemmaAttention(nn.Module):
         if (
             self.attn_type == gemma_config.AttentionType.LOCAL_SLIDING
             and self.sliding_window_size is not None 
-            and self.regular_attention
+            and self.compute_regular_attention
         ):
             # [batch_size, n_local_heads, head_dim, max_seq_len]
             k = k.transpose(2, 3)
@@ -608,7 +607,6 @@ class GemmaForCausalLM(nn.Module):
         temperature: Union[float, None] = 0.95,
         top_p: float = 1.0,
         top_k: int = 100,
-        desired_prompt_len = 8192
     ) -> Union[str, Sequence[str]]:
         """Generates responses for given prompts using Gemma model."""
         # If a single prompt is provided, treat it as a batch of 1.
@@ -618,7 +616,7 @@ class GemmaForCausalLM(nn.Module):
 
         batch_size = len(prompts)
         prompt_tokens = [self.tokenizer.encode(prompt) for prompt in prompts]
-        min_prompt_len = max(min(len(p) for p in prompt_tokens), desired_prompt_len)
+        min_prompt_len = min(len(p) for p in prompt_tokens)
         max_prompt_len = max(len(p) for p in prompt_tokens)
         max_seq_len = max_prompt_len + output_len
         assert max_seq_len <= self.config.max_position_embeddings
@@ -660,7 +658,6 @@ class GemmaForCausalLM(nn.Module):
         top_ks_tensor = torch.LongTensor([top_k] * batch_size).to(device)
         output_index = torch.tensor(min_prompt_len, dtype=torch.int64).to(
             device)
-
         # Prefill up to min_prompt_len tokens, then treat other prefill as
         # decode and ignore output.
         for i in range(max_seq_len - min_prompt_len):
