@@ -24,6 +24,7 @@ from typing import Any, List, Optional, Sequence, Tuple, Union
 from gemma import config as gemma_config
 from gemma import tokenizer
 
+from .r_attention import RegularAttention
 
 class Sampler(nn.Module):
 
