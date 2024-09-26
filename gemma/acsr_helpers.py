@@ -52,6 +52,8 @@ def create_causal_windowed_mask(s : int, p : int) -> list[list[int]]:
                 if i >= j:
                     mask[i][j] = 1
 
+    return mask
+
 ## This gives the mapping from dense -> sparse.
 @dataclass
 class AffineIndices:
