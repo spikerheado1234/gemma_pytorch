@@ -259,14 +259,13 @@ class GemmaAttention(nn.Module):
             quant=quant)
 
         batch = 1
-        seq_length = 2048
         BLOCK_SIZE_Y = 16
         BLOCK_SIZE_X = 16
-        mask = create_windowed_mask(seq_length, 1024)
+        mask = create_windowed_mask(prompt_length, prompt_length // 2)
         GPU_ID = 0
         out_dtype = torch.float32
         self.regular_attention = RegularAttention(
-            batch, seq_length, num_heads, head_dim,
+            batch, prompt_length, num_heads, head_dim,
             mask, BLOCK_SIZE_Y, BLOCK_SIZE_X, GPU_ID, out_dtype
         )
 
@@ -274,7 +273,7 @@ class GemmaAttention(nn.Module):
         self.sliding_window_size = sliding_window_size
         self.attn_logit_softcapping = attn_logit_softcapping
         self.compute_regular_attention = True
-        self.attn_seq_length = seq_length
+        self.attn_seq_length = prompt_length 
 
     def forward(
         self,
