@@ -228,6 +228,7 @@ class GemmaAttention(nn.Module):
         quant: bool,
         attn_type: gemma_config.AttentionType,
         sliding_window_size: Optional[int] = None,
+        prompt_length : Optional[int] = None,
     ):
         super().__init__()
 
@@ -380,6 +381,7 @@ class GemmaDecoderLayer(nn.Module):
             head_dim=config.head_dim,
             quant=config.quant,
             attn_type=gemma_config.AttentionType.GLOBAL,
+            prompt_length=config.prompt_length,
         )
         self.mlp = GemmaMLP(
             hidden_size=config.hidden_size,
@@ -437,6 +439,7 @@ class Gemma2DecoderLayer(nn.Module):
             quant=config.quant,
             attn_type=attn_type,
             sliding_window_size=config.sliding_window_size,
+            prompt_length=config.prompt_length,
         )
         self.mlp = GemmaMLP(
             hidden_size=config.hidden_size,

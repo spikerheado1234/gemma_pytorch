@@ -82,6 +82,8 @@ class GemmaConfig:
     use_pre_ffw_norm: bool = False
     # Whether to use post mlp normalization.
     use_post_ffw_norm: bool = False
+    # The prompt length for regular attention instantiation.
+    prompt_length : Optional[int] = None
 
     def get_dtype(self) -> Optional[torch.dtype]:
         """Gets the torch dtype from the config dtype string."""
