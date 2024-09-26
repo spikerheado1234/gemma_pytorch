@@ -28,7 +28,7 @@ import pdb
 import time
 
 from .r_attention import RegularAttention
-from .acsr_helpers import create_windowed_mask
+from .acsr_helpers import create_windowed_mask, create_causal_windowed_mask
 
 class Sampler(nn.Module):
 
@@ -261,7 +261,8 @@ class GemmaAttention(nn.Module):
         batch = 1
         BLOCK_SIZE_Y = 16
         BLOCK_SIZE_X = 16
-        mask = create_windowed_mask(prompt_length, prompt_length // 2)
+        mask = create_causal_windowed_mask(prompt_length, prompt_length // 2)
+        #mask = create_windowed_mask(prompt_length, prompt_length // 2)
         GPU_ID = 0
         out_dtype = torch.float32
         self.regular_attention = RegularAttention(
