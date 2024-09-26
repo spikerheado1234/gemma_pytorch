@@ -25,6 +25,7 @@ from gemma import config as gemma_config
 from gemma import tokenizer
 
 import pdb
+import time
 
 from .r_attention import RegularAttention
 from .acsr_helpers import create_windowed_mask
@@ -271,7 +272,8 @@ class GemmaAttention(nn.Module):
         self.attn_type = attn_type
         self.sliding_window_size = sliding_window_size
         self.attn_logit_softcapping = attn_logit_softcapping
-        self.compute_regular_attention = False
+        self.compute_regular_attention = True
+        self.attn_seq_length = seq_length
 
     def forward(
         self,
@@ -326,8 +328,13 @@ class GemmaAttention(nn.Module):
             and self.compute_regular_attention
         ):
             # [batch_size, n_local_heads, head_dim, max_seq_len]
+            #pdb.set_trace()
             k = k.transpose(2, 3)
+            # [batch_size, n_local_heads, max_len, head_dim]
             output = self.regular_attention([q, k, v])
+            output = (output.transpose(1, 2).contiguous().view(
+                        batch_size, self.attn_seq_length, -1))
+            output = self.o_proj(output)
             return output
 
         scores = torch.matmul(q, k.transpose(2, 3))
@@ -659,6 +666,8 @@ class GemmaForCausalLM(nn.Module):
         output_index = torch.tensor(min_prompt_len, dtype=torch.int64).to(
             device)
         # Prefill up to min_prompt_len tokens, then treat other prefill as
+        torch.cuda.synchronize()
+        start = time.time()
         # decode and ignore output.
         for i in range(max_seq_len - min_prompt_len):
             next_token_ids, _ = self(
@@ -688,7 +697,9 @@ class GemmaForCausalLM(nn.Module):
             output_positions_tensor = torch.tensor(0, dtype=torch.int64).to(
                 device)
             output_index = output_index + 1
-
+        torch.cuda.synchronize()
+        end = time.time()
+        print(f'decoding time: {end-start}')
         # Detokenization.
         token_ids = token_ids_tensor.tolist()
         results = []

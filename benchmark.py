@@ -24,9 +24,6 @@ if __name__ == '__main__':
     result = gemma.generate(prompt, GPU_ID, output_len=1)
     print(f'result: {result}')
 
-    a = time.time()
     result = gemma.generate(prompt, GPU_ID, output_len=1)
-    b = time.time()
+    result = gemma.generate(prompt, GPU_ID, output_len=1)
 
-
-    print(f'finished! Time taken: {b-a:.5f}')
