@@ -77,12 +77,13 @@ def benchmark_softmax():
     keys = torch.randn((batch, seq_length, head_dim, num_heads), dtype=out_dtype).to(GPU_ID)
     values = torch.randn((batch, seq_length, num_heads, head_dim), dtype=out_dtype).to(GPU_ID)
     all_ones = torch.ones((batch, num_heads, seq_length, seq_length))
+    torch_mask = torch.zeros((batch, num_heads, seq_length, seq_length))
     sliding_mask = torch.triu(
         all_ones, -1 * sliding_window_size + 1
     ) * torch.tril(all_ones, sliding_window_size - 1)
-    mask = torch.where(sliding_mask == 1, mask, -2.3819763e38)
+    torch_mask = torch.where(sliding_mask == 1, torch_mask, -2.3819763e38)
     scores = torch.matmul(queries, keys)
-    scores = scores + mask
+    scores = scores + torch_mask 
 
     for _ in range(5):
         scores = F.softmax(scores.float(), dim=-1).type_as(queries)
