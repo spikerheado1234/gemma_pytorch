@@ -138,7 +138,7 @@ def benchmark_softmax():
         )
     torch.cuda.synchronize()
     rsoftmax_end = time.time()
-    print(f'rsddmm timing: {rsoftmax_end - rsoftmax_start}')
+    print(f'rsoftmax timing: {rsoftmax_end - rsoftmax_start}')
 
 
 if __name__ == '__main__':
