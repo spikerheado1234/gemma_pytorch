@@ -329,7 +329,6 @@ class GemmaAttention(nn.Module):
             and self.compute_regular_attention
         ):
             # [batch_size, n_local_heads, head_dim, max_seq_len]
-            #pdb.set_trace()
             k = k.transpose(2, 3)
             # [batch_size, n_local_heads, max_len, head_dim]
             output = self.regular_attention([q, k, v])
