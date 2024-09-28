@@ -106,7 +106,7 @@ def rsoftmax_launcher(
                         sTod_linear_transformations,sTod_translations,nnzs,
                         x.shape[2],acsr_trailing_dim_true, 
                         acsr_trailing_dim_power_two,
-                        BLOCK_SIZE_X=BLOCK_SIZE_X, num_warps=2
+                        BLOCK_SIZE_X=BLOCK_SIZE_X, num_warps=8, num_stages=4
                         )
 
     ## We return the sTod arrays for correctness checking only.
