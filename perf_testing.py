@@ -143,5 +143,5 @@ def benchmark_softmax():
 
 
 if __name__ == '__main__':
-    benchmark_sddmm()
-    #benchmark_softmax()
+    #benchmark_sddmm()
+    benchmark_softmax()
