@@ -15,8 +15,8 @@ def benchmark_sddmm():
     GPU_ID = 0
     out_dtype = torch.float32
     mask : list[list[int]] = create_causal_windowed_mask(seq_length, seq_length // 2)
-    queries = torch.randn((batch, seq_length, num_heads, head_dim), dtype=out_dtype).to(GPU_ID)
-    keys = torch.randn((batch, seq_length, head_dim, num_heads), dtype=out_dtype).to(GPU_ID)
+    queries = torch.randn((batch, num_heads, seq_length, head_dim), dtype=out_dtype).to(GPU_ID)
+    keys = torch.randn((batch, num_heads, head_dim, seq_length), dtype=out_dtype).to(GPU_ID)
     values = torch.randn((batch, seq_length, num_heads, head_dim), dtype=out_dtype).to(GPU_ID)
 
     for _ in range(5):
@@ -73,9 +73,9 @@ def benchmark_softmax():
     sliding_window_size = seq_length // 2
     out_dtype = torch.float32
     mask : list[list[int]] = create_causal_windowed_mask(seq_length, seq_length // 2)
-    queries = torch.randn((batch, seq_length, num_heads, head_dim), dtype=out_dtype).to(GPU_ID)
-    keys = torch.randn((batch, seq_length, head_dim, num_heads), dtype=out_dtype).to(GPU_ID)
-    values = torch.randn((batch, seq_length, num_heads, head_dim), dtype=out_dtype).to(GPU_ID)
+    queries = torch.randn((batch, num_heads, seq_length, head_dim), dtype=out_dtype).to(GPU_ID)
+    keys = torch.randn((batch, num_heads, head_dim, seq_length), dtype=out_dtype).to(GPU_ID)
+    values = torch.randn((batch, num_heads, seq_length, head_dim), dtype=out_dtype).to(GPU_ID)
     all_ones = torch.ones((batch, num_heads, seq_length, seq_length))
     torch_mask = torch.zeros((batch, num_heads, seq_length, seq_length))
     sliding_mask = torch.triu(
@@ -143,4 +143,5 @@ def benchmark_softmax():
 
 
 if __name__ == '__main__':
-    benchmark_softmax()
+    benchmark_sddmm()
+    #benchmark_softmax()
