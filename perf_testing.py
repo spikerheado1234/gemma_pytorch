@@ -13,9 +13,9 @@ if __name__ == '__main__':
     GPU_ID = 0
     out_dtype = torch.float32
     mask : list[list[int]] = create_causal_windowed_mask(seq_length, seq_length // 2)
-    queries = torch.randn((batch, seq_length, num_heads, head_dim), dtype=out_dtype)
-    keys = torch.randn((batch, seq_length, head_dim, num_heads), dtype=out_dtype)
-    values = torch.randn((batch, seq_length, num_heads, head_dim), dtype=out_dtype)
+    queries = torch.randn((batch, seq_length, num_heads, head_dim), dtype=out_dtype).to(GPU_ID)
+    keys = torch.randn((batch, seq_length, head_dim, num_heads), dtype=out_dtype).to(GPU_ID)
+    values = torch.randn((batch, seq_length, num_heads, head_dim), dtype=out_dtype).to(GPU_ID)
 
     for _ in range(5):
         attn = torch.matmul(queries, keys)
