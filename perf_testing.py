@@ -189,7 +189,7 @@ def benchmark_spmm():
                                          BLOCK_SIZE_X, BLOCK_SIZE_Y, GPU_ID, out_dtype)
     grid_dim, output_softmax, full_shape, trailing_dim_pow_two = rsoftmax_preamble(mask, (batch, num_heads, 
                                                                                   seq_length, acsr_trailing_dimension), 
-                                                                                  BLOCK_SIZE_X, GPU_ID,
+                                                                                  1, GPU_ID,
                                                                                   out_dtype)
     ## Call rspmm preamble.
     output_tensor_spmm, grid_dim, trailing_dim_acsr = rspmm_preamble(mask, (batch, num_heads, seq_length, head_dim), 
@@ -206,7 +206,7 @@ def benchmark_spmm():
             rsddmm_output, output_softmax, dTos_linear_transformations, dTos_translations, 
             sTod_linear_transformations, sTod_translations,
             acsr_trailing_dimension, trailing_dim_pow_two, nnzs, 
-            grid_dim, BLOCK_SIZE_X
+            grid_dim, 1 
             )
 
     ## Finally, launch the triton kernel.
