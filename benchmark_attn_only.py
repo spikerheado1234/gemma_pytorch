@@ -54,7 +54,7 @@ def attn_only(tokenizer, config,
 
     # [batch_size, input_len, hidden_size]
     embed = Embedding(config.vocab_size, config.hidden_size, config.quant)
-    next_state = embed(tokens)
+    next_state = embed(prompt_tokens)
     torch.cuda.synchronize()
     start = time.time()
     # decode and ignore output.
