@@ -53,7 +53,7 @@ def attn_only(tokenizer, config,
     kv_write_indices = input_positions_tensor
 
     # [batch_size, input_len, hidden_size]
-    embed = Embedding(config.vocab_size, config.hidden_size, config.quant)
+    embed = Embedding(config.vocab_size, config.hidden_size, config.quant).to(GPU_ID)
     next_state = embed(input_token_ids_tensor)
     torch.cuda.synchronize()
     start = time.time()
