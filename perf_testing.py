@@ -188,9 +188,6 @@ def benchmark_spmm():
                                                                                   seq_length, acsr_trailing_dimension), 
                                                                                   1, GPU_ID,
                                                                                   out_dtype)
-    output_tensor_spmm, grid_dim, trailing_dim_acsr = rspmm_preamble(mask, (batch, num_heads, seq_length, head_dim), 
-                                                                BLOCK_SIZE_X, BLOCK_SIZE_Y, GPU_ID, out_dtype)
-
     rsddmm_output, sTod_linear_transformations, \
         sTod_translations, nnzs = rsddmm_launcher(queries, keys, output_tensor, 
                                                 dTos_linear_transformations, dTos_translations,
@@ -206,31 +203,34 @@ def benchmark_spmm():
         grid_dim, 1 
         )
 
-    ## Finally, launch the triton kernel.
-    for _ in range(5):
-        rspmm_output, sTod_linear_transformations, sTod_translations, nnzs = rspmm_launcher(
-            rsoftmax_output, values, output_tensor_spmm,
-            dTos_linear_transformations, dTos_translations,
-            sTod_linear_transformations, sTod_translations,
-            span_loop_start, span_loop_end,
-            trailing_dim_acsr, nnzs, grid_dim, 
-            BLOCK_SIZE_Y, BLOCK_SIZE_X
-            )
+    # output_tensor_spmm, grid_dim, trailing_dim_acsr = rspmm_preamble(mask, (batch, num_heads, seq_length, head_dim), 
+    #                                                             BLOCK_SIZE_X, BLOCK_SIZE_Y, GPU_ID, out_dtype)
 
-    ## Call the softmax launcher.
-    torch.cuda.synchronize()
-    rsoftmax_start = time.time()
-    rspmm_output, sTod_linear_transformations, sTod_translations, nnzs = rspmm_launcher(
-        rsoftmax_output, values, output_tensor_spmm,
-        dTos_linear_transformations, dTos_translations,
-        sTod_linear_transformations, sTod_translations,
-        span_loop_start, span_loop_end,
-        trailing_dim_acsr, nnzs, grid_dim, 
-        BLOCK_SIZE_Y, BLOCK_SIZE_X
-        )
-    torch.cuda.synchronize()
-    rsoftmax_end = time.time()
-    print(f'rspmm timing: {rsoftmax_end - rsoftmax_start}')
+    # ## Finally, launch the triton kernel.
+    # for _ in range(5):
+    #     rspmm_output, sTod_linear_transformations, sTod_translations, nnzs = rspmm_launcher(
+    #         rsoftmax_output, values, output_tensor_spmm,
+    #         dTos_linear_transformations, dTos_translations,
+    #         sTod_linear_transformations, sTod_translations,
+    #         span_loop_start, span_loop_end,
+    #         trailing_dim_acsr, nnzs, grid_dim, 
+    #         BLOCK_SIZE_Y, BLOCK_SIZE_X
+    #         )
+
+    # ## Call the softmax launcher.
+    # torch.cuda.synchronize()
+    # rsoftmax_start = time.time()
+    # rspmm_output, sTod_linear_transformations, sTod_translations, nnzs = rspmm_launcher(
+    #     rsoftmax_output, values, output_tensor_spmm,
+    #     dTos_linear_transformations, dTos_translations,
+    #     sTod_linear_transformations, sTod_translations,
+    #     span_loop_start, span_loop_end,
+    #     trailing_dim_acsr, nnzs, grid_dim, 
+    #     BLOCK_SIZE_Y, BLOCK_SIZE_X
+    #     )
+    # torch.cuda.synchronize()
+    # rsoftmax_end = time.time()
+    # print(f'rspmm timing: {rsoftmax_end - rsoftmax_start}')
 
 
 if __name__ == '__main__':
