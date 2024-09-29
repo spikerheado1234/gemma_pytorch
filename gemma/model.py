@@ -391,6 +391,7 @@ class GemmaDecoderLayer(nn.Module):
                                        eps=config.rms_norm_eps)
         self.post_attention_layernorm = RMSNorm(config.hidden_size,
                                                 eps=config.rms_norm_eps)
+        self.attn_only = config.attn_only
 
     def forward(
         self,
@@ -403,6 +404,9 @@ class GemmaDecoderLayer(nn.Module):
         # Self Attention
         residual = hidden_states
         hidden_states = self.input_layernorm(hidden_states)
+        if self.attn_only:
+            torch.cuda.synchronize()
+        start = time.time()
         hidden_states = self.self_attn(
             hidden_states=hidden_states,
             freqs_cis=freqs_cis,
@@ -410,6 +414,11 @@ class GemmaDecoderLayer(nn.Module):
             kv_cache=kv_cache,
             mask=mask,
         )
+        if self.attn_only:
+            torch.cuda.synchronize()
+        end = time.time()
+        if self.attn_only:
+            print(f'attn time: {end-start}')
         hidden_states = residual + hidden_states
 
         # MLP

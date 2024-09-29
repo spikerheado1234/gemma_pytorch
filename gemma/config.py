@@ -84,6 +84,8 @@ class GemmaConfig:
     use_post_ffw_norm: bool = False
     # The prompt length for regular attention instantiation.
     prompt_length : Optional[int] = None
+    # If we're benchmarking a single attention layer.
+    attn_only : bool = False
 
     def get_dtype(self) -> Optional[torch.dtype]:
         """Gets the torch dtype from the config dtype string."""
@@ -119,6 +121,24 @@ def get_config_for_2b_v2() -> GemmaConfig:
         head_dim=256,
         attn_types=[AttentionType.LOCAL_SLIDING, AttentionType.GLOBAL] * 13,
         sliding_window_size=4096,
+    )
+
+def get_config_for_2b_v2_attn_only() -> GemmaConfig:
+    return GemmaConfig(
+        architecture=Architecture.GEMMA_2,
+        num_hidden_layers=1,
+        num_attention_heads=8,
+        num_key_value_heads=4,
+        hidden_size=2304,
+        intermediate_size=9216,
+        use_pre_ffw_norm=True,
+        use_post_ffw_norm=True,
+        final_logit_softcapping=30.0,
+        attn_logit_softcapping=50.0,
+        head_dim=256,
+        attn_types=[AttentionType.LOCAL_SLIDING],
+        sliding_window_size=4096,
+        attn_only=True,
     )
 
 
