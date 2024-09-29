@@ -6,7 +6,7 @@ import time
 
 if __name__ == '__main__':
     # Parameters.
-    true_seq_length = 2048
+    true_seq_length = 4096
     seq_length = true_seq_length - 10
     output_len : int = 1
 

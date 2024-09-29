@@ -160,7 +160,7 @@ def rspmm_launcher(x : torch.Tensor, y : torch.Tensor, output : torch.Tensor,
                                             x.shape[2],y.shape[3],y.shape[2], acsr_trailing_dim,
                                             ## ACSR metadata for optimisations.
                                             span_loop_start, span_loop_end,
-                                            BLOCK_SIZE_Y=BLOCK_SIZE_Y, BLOCK_SIZE_X=BLOCK_SIZE_X, num_warps=2)
+                                            BLOCK_SIZE_Y=BLOCK_SIZE_Y, BLOCK_SIZE_X=BLOCK_SIZE_X, num_warps=4)
     ## We return the sTod arrays for correctness checking only.
     return (output, sTod_linear_transformations, sTod_translations, nnzs)
 
