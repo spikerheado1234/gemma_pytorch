@@ -48,6 +48,7 @@ def attn_only(tokenizer, config,
                              -2.3819763e38).to(torch.float)
     mask_tensor = torch.triu(mask_tensor, diagonal=1).to(device)
     curr_mask_tensor = mask_tensor.index_select(2, input_positions_tensor)
+    freqs_cis = precompute_freqs_cis(config.head_dim, max_seq_len * 2, theta=10000)
     freqs_cis = freqs_cis.index_select(0, input_positions_tensor)
     kv_write_indices = input_positions_tensor
 
