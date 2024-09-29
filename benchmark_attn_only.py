@@ -8,9 +8,9 @@ import time
 def attn_only(tokenizer, config, 
               device, GemmaAttn : GemmaAttention, 
               tokens : torch.Tensor):
-    is_str_prompt = isinstance(prompts, str)
+    is_str_prompt = isinstance(tokens, str)
     if is_str_prompt:
-        prompts = [prompts]
+        prompts = [tokens]
 
     batch_size = len(prompts)
     prompt_tokens = [tokenizer.encode(prompt) for prompt in prompts]
