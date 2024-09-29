@@ -176,38 +176,35 @@ def benchmark_spmm():
     torch_softmax_end = time.time()
 
     print(f'torch output: {torch_softmax_end-torch_softmax_start}')
-
     dTos_linear_transformations, dTos_translations, \
     sTod_linear_transformations, sTod_translations, nnzs, \
     acsr_trailing_dimension, span_loop_start, span_loop_end = create_acsr(
         mask, BLOCK_SIZE_X, GPU_ID
         )
-
-    
-    output_tensor_sddmm, grid_dim, \
+    output_tensor, grid_dim, \
     tb_map_x, tb_map_y = rsddmm_preamble(mask, (batch, num_heads, seq_length, acsr_trailing_dimension), 
                                          BLOCK_SIZE_X, BLOCK_SIZE_Y, GPU_ID, out_dtype)
-    grid_dim, output_softmax, full_shape, trailing_dim_pow_two = rsoftmax_preamble(mask, (batch, num_heads, 
+    grid_dim, output, full_shape, trailing_dim_pow_two = rsoftmax_preamble(mask, (batch, num_heads, 
                                                                                   seq_length, acsr_trailing_dimension), 
                                                                                   1, GPU_ID,
                                                                                   out_dtype)
-    ## Call rspmm preamble.
     output_tensor_spmm, grid_dim, trailing_dim_acsr = rspmm_preamble(mask, (batch, num_heads, seq_length, head_dim), 
                                                                 BLOCK_SIZE_X, BLOCK_SIZE_Y, GPU_ID, out_dtype)
 
     rsddmm_output, sTod_linear_transformations, \
-        sTod_translations, nnzs = rsddmm_launcher(queries, keys, output_tensor_sddmm, 
+        sTod_translations, nnzs = rsddmm_launcher(queries, keys, output_tensor, 
                                                 dTos_linear_transformations, dTos_translations,
                                                 sTod_linear_transformations, sTod_translations,
                                                 acsr_trailing_dimension, nnzs, grid_dim, 
                                                 tb_map_x, tb_map_y, 
                                                 BLOCK_SIZE_Y, BLOCK_SIZE_X)
+
     rsoftmax_output, sTod_linear_transformations, sTod_translations, nnzs = rsoftmax_launcher(
-            rsddmm_output, output_softmax, dTos_linear_transformations, dTos_translations, 
-            sTod_linear_transformations, sTod_translations,
-            acsr_trailing_dimension, trailing_dim_pow_two, nnzs, 
-            grid_dim, 1 
-            )
+        rsddmm_output, output, dTos_linear_transformations, dTos_translations, 
+        sTod_linear_transformations, sTod_translations,
+        acsr_trailing_dimension, trailing_dim_pow_two, nnzs, 
+        grid_dim, 1 
+        )
 
     ## Finally, launch the triton kernel.
     for _ in range(5):
