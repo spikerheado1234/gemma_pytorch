@@ -108,7 +108,7 @@ def benchmark_softmax():
                                          BLOCK_SIZE_X, BLOCK_SIZE_Y, GPU_ID, out_dtype)
     grid_dim, output, full_shape, trailing_dim_pow_two = rsoftmax_preamble(mask, (batch, num_heads, 
                                                                                   seq_length, acsr_trailing_dimension), 
-                                                                                  BLOCK_SIZE_X, GPU_ID,
+                                                                                  1, GPU_ID,
                                                                                   out_dtype)
 
     rsddmm_output, sTod_linear_transformations, \
@@ -125,7 +125,7 @@ def benchmark_softmax():
             rsddmm_output, output, dTos_linear_transformations, dTos_translations, 
             sTod_linear_transformations, sTod_translations,
             acsr_trailing_dimension, trailing_dim_pow_two, nnzs, 
-            grid_dim, BLOCK_SIZE_X
+            grid_dim, 1 
             )
 
     ## Call the softmax launcher.

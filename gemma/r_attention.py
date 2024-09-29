@@ -33,7 +33,7 @@ class RegularAttention(nn.Module):
         ## rSoftmax preamble.
         rsoftmax_grid_dim, rsoftmax_output, rsoftmax_full_shape, \
             rsoftmax_trailing_dim_pow_two = rsoftmax_preamble(mask, (batch, num_heads, seq_length, acsr_trailing_dim), 
-                                                              BLOCK_SIZE_X, GPU_ID, out_dtype)
+                                                              1, GPU_ID, out_dtype)
 
         ## rSpMM preamble.
         rspmm_output, rspmm_grid_dim, rspmm_trailing_dim_acsr =  rspmm_preamble(mask, (batch, num_heads, seq_length, head_dim), 
@@ -88,7 +88,7 @@ class RegularAttention(nn.Module):
                           self.dTos_linear_transformations, self.dTos_translations,
                           self.sTod_linear_transformations, self.sTod_translations,
                           self.acsr_trailing_dim, self.rsoftmax_trailing_dim_pow_two, self.nnzs,
-                          self.rsoftmax_grid_dim, self.BLOCK_SIZE_X)
+                          self.rsoftmax_grid_dim, 1)
 
         rspmm_launcher(self.rsoftmax_output, v, self.rspmm_output, 
                        self.dTos_linear_transformations, self.dTos_translations,
