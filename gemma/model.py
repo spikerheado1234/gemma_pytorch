@@ -265,6 +265,7 @@ class GemmaAttention(nn.Module):
         #mask = create_windowed_mask(prompt_length, prompt_length // 2)
         GPU_ID = 0
         out_dtype = torch.float32
+        ## API for the Regular Attention Code-generation 
         self.regular_attention = RegularAttention(
             batch, prompt_length, num_heads, head_dim,
             mask, BLOCK_SIZE_Y, BLOCK_SIZE_X, GPU_ID, out_dtype

@@ -74,7 +74,7 @@ def attn_only(tokenizer, config,
 
 if __name__ == '__main__':
     # Parameters.
-    true_seq_length = 4096
+    true_seq_length = 2048
     seq_length = true_seq_length - 10
     output_len : int = 1
 
@@ -89,6 +89,7 @@ if __name__ == '__main__':
     prompt_length = len(tknizer.encode(prompt))
     model_config.prompt_length = prompt_length 
     print(model_config)
+    GPU_ID : int = 0
     gemma_attn_only = GemmaAttention(
         hidden_size=model_config.hidden_size,
         num_heads=model_config.num_attention_heads,
@@ -100,9 +101,10 @@ if __name__ == '__main__':
         attn_type=AttentionType.LOCAL_SLIDING,
         sliding_window_size=model_config.sliding_window_size,
         prompt_length=model_config.prompt_length,
-        )
+        ).to(GPU_ID)
     ## Random input.
-    GPU_ID : int = 0
 
     ## We call our attn_only function.
+    attn_only(tknizer, model_config, GPU_ID, gemma_attn_only, prompt)
+    attn_only(tknizer, model_config, GPU_ID, gemma_attn_only, prompt)
     attn_only(tknizer, model_config, GPU_ID, gemma_attn_only, prompt)
