@@ -282,7 +282,7 @@ class GemmaAttention(nn.Module):
         hidden_states: torch.Tensor,
         freqs_cis: torch.Tensor,
         kv_write_indices: torch.Tensor,
-        kv_cache: Tuple[torch.Tensor, torch.Tensor],
+        kv_cache: torch.Tensor,
         mask: torch.Tensor,
     ) -> torch.Tensor:
         hidden_states_shape = hidden_states.shape
@@ -304,7 +304,11 @@ class GemmaAttention(nn.Module):
 
         # Write new kv cache.
         # [batch_size, input_len, n_local_kv_heads, head_dim]
-        k_cache, v_cache = kv_cache
+
+        ## We unpack this according to the new torch.Tensor type.
+        k_cache = kv_cache[0]
+        v_cache = kv_cache[1]
+        #k_cache, v_cache = kv_cache
         k_cache.index_copy_(1, kv_write_indices, xk)
         v_cache.index_copy_(1, kv_write_indices, xv)
         key = k_cache

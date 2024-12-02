@@ -4,6 +4,7 @@ from gemma.model import Embedding
 from gemma import tokenizer
 import torch
 import time
+import pdb
 
 def attn_only(tokenizer, config, 
               device, GemmaAttn : GemmaAttention, 
@@ -28,6 +29,9 @@ def attn_only(tokenizer, config,
         k_cache = torch.zeros(size=size, dtype=dtype, device=device)
         v_cache = torch.zeros(size=size, dtype=dtype, device=device)
         kv_caches.append((k_cache, v_cache))
+    ## We modify the kv_caches to be exportable to ONNX.
+    kv_caches = kv_caches[0]
+    kv_caches = torch.stack([kv_caches[0], kv_caches[1]], dim=0)
 
     # prepare inputs
     token_ids_tensor = torch.full((batch_size, max_seq_len),
@@ -64,9 +68,19 @@ def attn_only(tokenizer, config,
             hidden_states=next_state,
             freqs_cis=freqs_cis,
             kv_write_indices=kv_write_indices,
-            kv_cache=kv_caches[0],
+            kv_cache=kv_caches,
             mask=curr_mask_tensor,
         )
+    
+        ## We will try exporting the model to onnx. ##
+        onnx_program = torch.onnx.dynamo_export(GemmaAttn,
+            hidden_states=next_state,
+            freqs_cis=freqs_cis,
+            kv_write_indices=kv_write_indices,
+            kv_cache=kv_caches,
+            mask=curr_mask_tensor,
+                )
+        break
     torch.cuda.synchronize()
     end = time.time()
     print(f'decoding time: {end-start}')
@@ -74,7 +88,7 @@ def attn_only(tokenizer, config,
 
 if __name__ == '__main__':
     # Parameters.
-    true_seq_length = 2048
+    true_seq_length = 4096
     seq_length = true_seq_length - 10
     output_len : int = 1
 
