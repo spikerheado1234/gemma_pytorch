@@ -27,8 +27,8 @@ from gemma import tokenizer
 import pdb
 import time
 
-from .r_attention import RegularAttention
-from .acsr_helpers import create_windowed_mask, create_causal_windowed_mask
+#from .r_attention import RegularAttention
+#from .acsr_helpers import create_windowed_mask, create_causal_windowed_mask
 
 class Sampler(nn.Module):
 
@@ -261,20 +261,20 @@ class GemmaAttention(nn.Module):
         batch = 1
         BLOCK_SIZE_Y = 16
         BLOCK_SIZE_X = 16
-        mask = create_causal_windowed_mask(prompt_length, prompt_length // 2)
+        #mask = create_causal_windowed_mask(prompt_length, prompt_length // 2)
         #mask = create_windowed_mask(prompt_length, prompt_length // 2)
         GPU_ID = 0
         out_dtype = torch.float32
         ## API for the Regular Attention Code-generation 
-        self.regular_attention = RegularAttention(
-            batch, prompt_length, num_heads, head_dim,
-            mask, BLOCK_SIZE_Y, BLOCK_SIZE_X, GPU_ID, out_dtype
-        )
+        #self.regular_attention = RegularAttention(
+        #    batch, prompt_length, num_heads, head_dim,
+        #    mask, BLOCK_SIZE_Y, BLOCK_SIZE_X, GPU_ID, out_dtype
+        # )
 
         self.attn_type = attn_type
         self.sliding_window_size = sliding_window_size
         self.attn_logit_softcapping = attn_logit_softcapping
-        self.compute_regular_attention = True
+        self.compute_regular_attention = False
         self.attn_seq_length = prompt_length 
 
     def forward(
