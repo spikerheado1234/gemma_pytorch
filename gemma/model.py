@@ -299,8 +299,8 @@ class GemmaAttention(nn.Module):
         xv = xv.view(batch_size, -1, self.num_kv_heads, self.head_dim)
 
         # Positional embedding.
-        xq = apply_rotary_emb(xq, freqs_cis=freqs_cis)
-        xk = apply_rotary_emb(xk, freqs_cis=freqs_cis)
+        #xq = apply_rotary_emb(xq, freqs_cis=freqs_cis)
+        #xk = apply_rotary_emb(xk, freqs_cis=freqs_cis)
 
         # Write new kv cache.
         # [batch_size, input_len, n_local_kv_heads, head_dim]

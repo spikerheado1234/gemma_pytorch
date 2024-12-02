@@ -73,13 +73,38 @@ def attn_only(tokenizer, config,
         )
     
         ## We will try exporting the model to onnx. ##
-        onnx_program = torch.onnx.dynamo_export(GemmaAttn,
-            hidden_states=next_state,
-            freqs_cis=freqs_cis,
-            kv_write_indices=kv_write_indices,
-            kv_cache=kv_caches,
-            mask=curr_mask_tensor,
-                )
+        #onnx_program = torch.onnx.dynamo_export(GemmaAttn,
+        #    hidden_states=next_state,
+        #    freqs_cis=freqs_cis,
+        #    kv_write_indices=kv_write_indices,
+        #    kv_cache=kv_caches,
+        #    mask=curr_mask_tensor,
+        #        )
+        import io
+        from onnxsim import simplify
+        import onnx
+        buffer = io.BytesIO()
+        with torch.no_grad():
+            torch.onnx.export(GemmaAttn, (next_state,
+                freqs_cis,
+                kv_write_indices,
+                kv_caches,
+                curr_mask_tensor),
+                buffer
+            )
+            buffer.seek(0, 0)
+
+            onnx_model = onnx.load_model(buffer)
+            onnx_model, success = simplify(onnx_model)
+            assert success
+            new_buffer = io.BytesIO()
+            onnx.save(onnx_model, new_buffer)
+            buffer = new_buffer
+            buffer.seek(0, 0)
+
+        if buffer.getbuffer().nbytes > 0:
+            with open("temp.onnx", "wb") as f:
+                f.write(buffer.read())
         break
     torch.cuda.synchronize()
     end = time.time()
