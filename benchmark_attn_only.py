@@ -1,4 +1,4 @@
-from gemma.model import GemmaForCausalLM, GemmaAttention, precompute_freqs_cis
+from gemma.model import GemmaForCausalLM, GemmaDecoderLayer, precompute_freqs_cis
 from gemma.config import get_config_for_2b_v2, AttentionType
 from gemma.model import Embedding
 from gemma import tokenizer
@@ -7,7 +7,7 @@ import time
 import pdb
 
 def attn_only(tokenizer, config, 
-              device, GemmaAttn : GemmaAttention, 
+              device, GemmaDecoder : GemmaDecoderLayer,
               tokens : torch.Tensor):
     is_str_prompt = isinstance(tokens, str)
     if is_str_prompt:
@@ -64,7 +64,7 @@ def attn_only(tokenizer, config,
     # decode and ignore output.
     for i in range(max_seq_len - min_prompt_len):
         ## Call the forward function on Gemma Attention with Local Sliding Window.
-        GemmaAttn(
+        GemmaDecoder(
             hidden_states=next_state,
             freqs_cis=freqs_cis,
             kv_write_indices=kv_write_indices,
