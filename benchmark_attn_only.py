@@ -101,7 +101,7 @@ def decoder_only(tokenizer, config,
 
 if __name__ == '__main__':
     # Parameters.
-    batch_size = 1
+    batch_size = 16
     seq_length = 11
     output_len : int = 1
 
