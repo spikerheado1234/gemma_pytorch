@@ -6,9 +6,9 @@ import torch
 import time
 import pdb
 
-def attn_only(tokenizer, config, 
-              device, GemmaDecoder : GemmaDecoderLayer,
-              tokens : torch.Tensor):
+def decoder_only(tokenizer, config, 
+                 device, GemmaDecoder : GemmaDecoderLayer,
+                 tokens : torch.Tensor):
     is_str_prompt = isinstance(tokens, str)
     if is_str_prompt:
         prompts = [tokens]
@@ -127,6 +127,6 @@ if __name__ == '__main__':
     ## Random input.
 
     ## We call our attn_only function.
-    attn_only(tknizer, model_config, GPU_ID, gemma_decoder, prompt)
-    attn_only(tknizer, model_config, GPU_ID, gemma_decoder, prompt)
-    attn_only(tknizer, model_config, GPU_ID, gemma_decoder, prompt)
+    decoder_only(tknizer, model_config, GPU_ID, gemma_decoder, prompt)
+    decoder_only(tknizer, model_config, GPU_ID, gemma_decoder, prompt)
+    decoder_only(tknizer, model_config, GPU_ID, gemma_decoder, prompt)
