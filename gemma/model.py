@@ -114,7 +114,7 @@ def apply_rotary_emb(x: torch.Tensor, freqs_cis: torch.Tensor) -> torch.Tensor:
 
 class Linear(nn.Module):
 
-    def __init__(self, in_features: int, out_features: int, quant: bool):
+    def __init__(self, in_features: int, out_features: int, quant: bool, dtype : torch.dtype = torch.bfloat16):
         super().__init__()
         if quant:
             self.weight = nn.Parameter(
@@ -124,8 +124,8 @@ class Linear(nn.Module):
             self.weight_scaler = nn.Parameter(torch.Tensor(out_features))
         else:
             self.weight = nn.Parameter(
-                torch.empty((out_features, in_features)),
-                requires_grad=False,
+                torch.empty((out_features, in_features), dtype=dtype),
+                requires_grad=False, 
             )
         self.quant = quant
 
@@ -139,7 +139,7 @@ class Linear(nn.Module):
 
 class Embedding(nn.Module):
 
-    def __init__(self, num_embeddings: int, embedding_dim: int, quant: bool):
+    def __init__(self, num_embeddings: int, embedding_dim: int, quant: bool, dtype : torch.dtype = torch.bfloat16):
         super().__init__()
         if quant:
             self.weight = nn.Parameter(
@@ -149,7 +149,7 @@ class Embedding(nn.Module):
             self.weight_scaler = nn.Parameter(torch.Tensor(num_embeddings))
         else:
             self.weight = nn.Parameter(
-                torch.empty((num_embeddings, embedding_dim)),
+                torch.empty((num_embeddings, embedding_dim), dtype=dtype),
                 requires_grad=False,
             )
         self.quant = quant
@@ -354,7 +354,7 @@ class GemmaDecoderLayer(nn.Module):
             quant=config.quant,
             attn_type=gemma_config.AttentionType.LOCAL_SLIDING,
             prompt_length=config.prompt_length,
-            sliding_window_size=config.sliding_window_size
+            sliding_window_size=config.sliding_window_size,
         )
         self.mlp = GemmaMLP(
             hidden_size=config.hidden_size,
