@@ -30,8 +30,6 @@ def attn_only(tokenizer, config,
         v_cache = torch.zeros(size=size, dtype=dtype, device=device)
         kv_caches.append((k_cache, v_cache))
     ## We modify the kv_caches to be exportable to ONNX.
-    kv_caches = kv_caches[0]
-    kv_caches = torch.stack([kv_caches[0], kv_caches[1]], dim=0)
 
     # prepare inputs
     token_ids_tensor = torch.full((batch_size, max_seq_len),
@@ -60,35 +58,31 @@ def attn_only(tokenizer, config,
     embed = Embedding(config.vocab_size, config.hidden_size, config.quant).to(GPU_ID)
     next_state = embed(input_token_ids_tensor)
     torch.cuda.synchronize()
-    start = time.time()
     # decode and ignore output.
     for i in range(max_seq_len - min_prompt_len):
         ## Call the forward function on Gemma Attention with Local Sliding Window.
+        torch.cuda.synchronize()
+        start = time.time()
         GemmaDecoder(
             hidden_states=next_state,
             freqs_cis=freqs_cis,
             kv_write_indices=kv_write_indices,
-            kv_cache=kv_caches,
+            kv_cache=kv_caches[0],
             mask=curr_mask_tensor,
         )
+        torch.cuda.synchronize()
+        end = time.time()
+        print(f'decoding time: {end-start}')
     
-        ## We will try exporting the model to onnx. ##
-        #onnx_program = torch.onnx.dynamo_export(GemmaAttn,
-        #    hidden_states=next_state,
-        #    freqs_cis=freqs_cis,
-        #    kv_write_indices=kv_write_indices,
-        #    kv_cache=kv_caches,
-        #    mask=curr_mask_tensor,
-        #        )
         import io
         from onnxsim import simplify
         import onnx
         buffer = io.BytesIO()
         with torch.no_grad():
-            torch.onnx.export(GemmaAttn, (next_state,
+            torch.onnx.export(GemmaDecoder, (next_state,
                 freqs_cis,
                 kv_write_indices,
-                kv_caches,
+                kv_caches[0],
                 curr_mask_tensor),
                 buffer
             )
@@ -106,9 +100,6 @@ def attn_only(tokenizer, config,
             with open("temp.onnx", "wb") as f:
                 f.write(buffer.read())
         break
-    torch.cuda.synchronize()
-    end = time.time()
-    print(f'decoding time: {end-start}')
 
 
 if __name__ == '__main__':
@@ -129,21 +120,12 @@ if __name__ == '__main__':
     model_config.prompt_length = prompt_length 
     print(model_config)
     GPU_ID : int = 0
-    gemma_attn_only = GemmaAttention(
-        hidden_size=model_config.hidden_size,
-        num_heads=model_config.num_attention_heads,
-        num_kv_heads=model_config.num_key_value_heads,
-        attn_logit_softcapping=model_config.attn_logit_softcapping,
-        query_pre_attn_scalar=model_config.query_pre_attn_scalar,
-        head_dim=model_config.head_dim,
-        quant=model_config.quant,
-        attn_type=AttentionType.LOCAL_SLIDING,
-        sliding_window_size=model_config.sliding_window_size,
-        prompt_length=model_config.prompt_length,
+    gemma_decoder = GemmaDecoderLayer(
+            model_config
         ).to(GPU_ID)
     ## Random input.
 
     ## We call our attn_only function.
-    attn_only(tknizer, model_config, GPU_ID, gemma_attn_only, prompt)
-    attn_only(tknizer, model_config, GPU_ID, gemma_attn_only, prompt)
-    attn_only(tknizer, model_config, GPU_ID, gemma_attn_only, prompt)
+    attn_only(tknizer, model_config, GPU_ID, gemma_decoder, prompt)
+    attn_only(tknizer, model_config, GPU_ID, gemma_decoder, prompt)
+    attn_only(tknizer, model_config, GPU_ID, gemma_decoder, prompt)

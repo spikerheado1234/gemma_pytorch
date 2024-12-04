@@ -306,9 +306,7 @@ class GemmaAttention(nn.Module):
         # [batch_size, input_len, n_local_kv_heads, head_dim]
 
         ## We unpack this according to the new torch.Tensor type.
-        k_cache = kv_cache[0]
-        v_cache = kv_cache[1]
-        #k_cache, v_cache = kv_cache
+        k_cache, v_cache = kv_cache
         k_cache.index_copy_(1, kv_write_indices, xk)
         v_cache.index_copy_(1, kv_write_indices, xv)
         key = k_cache
@@ -326,7 +324,9 @@ class GemmaAttention(nn.Module):
         k = key.transpose(1, 2)
         v = value.transpose(1, 2)
         # [batch_size, n_local_heads, input_len, max_seq_len]
-        q.mul_(self.scaling)
+        ## For some reason, this was excepting, so we change to normal mul.
+        # q.mul_(self.scaling)
+        q = q*self.scaling
         ## Special code path if we compute regular attention.
         if (
             self.attn_type == gemma_config.AttentionType.LOCAL_SLIDING
