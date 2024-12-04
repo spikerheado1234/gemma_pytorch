@@ -24,7 +24,6 @@ from typing import Any, List, Optional, Sequence, Tuple, Union
 from gemma import config as gemma_config
 from gemma import tokenizer
 
-import pdb
 import time
 
 class Sampler(nn.Module):
