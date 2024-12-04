@@ -40,12 +40,18 @@ def decoder_only(tokenizer, config,
             p[:min_prompt_len])
     token_ids_tensor = token_ids_tensor.to(device)
     input_token_ids_tensor = input_token_ids_tensor.to(device)
-    prompt_mask_tensor = token_ids_tensor != tokenizer.pad_id
+    ## Generate the mask.
     input_positions_tensor = torch.arange(0, min_prompt_len,
                                           dtype=torch.int64).to(device)
     mask_tensor = torch.full((1, 1, max_seq_len, max_seq_len),
                              -2.3819763e38).to(torch.float)
     mask_tensor = torch.triu(mask_tensor, diagonal=1).to(device)
+    ## Generate sliding window mask.
+    all_ones = torch.ones_like(mask_tensor)
+    sliding_mask = torch.triu(
+        all_ones, -1 * config.sliding_window_size + 1
+    ) * torch.tril(all_ones, config.sliding_window_size - 1)
+    mask_tensor = torch.where(sliding_mask == 1, mask_tensor, -2.3819763e38)
     curr_mask_tensor = mask_tensor.index_select(2, input_positions_tensor)
     freqs_cis = precompute_freqs_cis(config.head_dim, max_seq_len * 2, theta=10000).to(GPU_ID)
     freqs_cis = freqs_cis.index_select(0, input_positions_tensor).to(GPU_ID)
@@ -57,9 +63,9 @@ def decoder_only(tokenizer, config,
     torch.cuda.synchronize()
     # decode and ignore output.
     for i in range(max_seq_len - min_prompt_len):
-        ## Call the forward function on Gemma Attention with Local Sliding Window.
         torch.cuda.synchronize()
         start = time.time()
+        # Call a decoder layer. 
         GemmaDecoder(
             hidden_states=next_state,
             freqs_cis=freqs_cis,
