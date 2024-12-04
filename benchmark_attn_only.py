@@ -118,7 +118,8 @@ if __name__ == '__main__':
     #model_config = get_config_for_2b_v2()
     ## Make 32 bit precision and turn of logit softcapping.
     tknizer = tokenizer.Tokenizer(model_config.tokenizer)
-    #model_config.dtype = 'float32'
+    
+    ## Currently we ONLY support bfloat16.
     model_config.quant = False
     model_config.dtype = 'bfloat16'
     model_config.attn_logit_softcapping = None
