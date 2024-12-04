@@ -27,9 +27,6 @@ from gemma import tokenizer
 import pdb
 import time
 
-#from .r_attention import RegularAttention
-#from .acsr_helpers import create_windowed_mask, create_causal_windowed_mask
-
 class Sampler(nn.Module):
 
     def __init__(self, vocab_size: int, config: gemma_config.GemmaConfig):
@@ -258,23 +255,9 @@ class GemmaAttention(nn.Module):
             self.hidden_size,
             quant=quant)
 
-        batch = 1
-        BLOCK_SIZE_Y = 16
-        BLOCK_SIZE_X = 16
-        #mask = create_causal_windowed_mask(prompt_length, prompt_length // 2)
-        #mask = create_windowed_mask(prompt_length, prompt_length // 2)
-        GPU_ID = 0
-        out_dtype = torch.float32
-        ## API for the Regular Attention Code-generation 
-        #self.regular_attention = RegularAttention(
-        #    batch, prompt_length, num_heads, head_dim,
-        #    mask, BLOCK_SIZE_Y, BLOCK_SIZE_X, GPU_ID, out_dtype
-        # )
-
         self.attn_type = attn_type
         self.sliding_window_size = sliding_window_size
         self.attn_logit_softcapping = attn_logit_softcapping
-        self.compute_regular_attention = False
         self.attn_seq_length = prompt_length 
 
     def forward(
@@ -327,20 +310,6 @@ class GemmaAttention(nn.Module):
         ## For some reason, this was excepting, so we change to normal mul.
         # q.mul_(self.scaling)
         q = q*self.scaling
-        ## Special code path if we compute regular attention.
-        if (
-            self.attn_type == gemma_config.AttentionType.LOCAL_SLIDING
-            and self.sliding_window_size is not None 
-            and self.compute_regular_attention
-        ):
-            # [batch_size, n_local_heads, head_dim, max_seq_len]
-            k = k.transpose(2, 3)
-            # [batch_size, n_local_heads, max_len, head_dim]
-            output = self.regular_attention([q, k, v])
-            output = (output.transpose(1, 2).contiguous().view(
-                        batch_size, self.attn_seq_length, -1))
-            output = self.o_proj(output)
-            return output
 
         scores = torch.matmul(q, k.transpose(2, 3))
         if (
