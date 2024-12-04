@@ -1,5 +1,5 @@
 from gemma.model import GemmaForCausalLM, GemmaDecoderLayer, precompute_freqs_cis
-from gemma.config import get_config_for_2b_v2, AttentionType
+from gemma.config import get_config_for_2b_v2, get_config_for_2b_v2_attn_only, AttentionType
 from gemma.model import Embedding
 from gemma import tokenizer
 import torch
@@ -109,7 +109,8 @@ if __name__ == '__main__':
     output_len : int = 1
 
     ## Test inference on gemma model.
-    model_config = get_config_for_2b_v2()
+    model_config = get_config_for_2b_v2_attn_only()
+    #model_config = get_config_for_2b_v2()
     ## Make 32 bit precision and turn of logit softcapping.
     model_config.dtype = 'float32'
     model_config.attn_logit_softcapping = None

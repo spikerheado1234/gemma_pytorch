@@ -384,8 +384,9 @@ class GemmaDecoderLayer(nn.Module):
             query_pre_attn_scalar=config.query_pre_attn_scalar,
             head_dim=config.head_dim,
             quant=config.quant,
-            attn_type=gemma_config.AttentionType.GLOBAL,
+            attn_type=gemma_config.AttentionType.LOCAL_SLIDING,
             prompt_length=config.prompt_length,
+            sliding_window_size=config.sliding_window_size
         )
         self.mlp = GemmaMLP(
             hidden_size=config.hidden_size,
