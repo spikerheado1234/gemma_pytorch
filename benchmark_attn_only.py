@@ -49,8 +49,8 @@ def decoder_only(tokenizer, config,
     ## Generate sliding window mask.
     all_ones = torch.ones_like(mask_tensor)
     sliding_mask = torch.triu(
-        all_ones, -1 * config.sliding_window_size + 1
-    ) * torch.tril(all_ones, config.sliding_window_size - 1)
+        all_ones, -1 * (seq_length // 2) + 1
+    ) * torch.tril(all_ones)
     mask_tensor = torch.where(sliding_mask == 1, mask_tensor, -2.3819763e38)
     curr_mask_tensor = mask_tensor.index_select(2, input_positions_tensor)
     freqs_cis = precompute_freqs_cis(config.head_dim, max_seq_len * 2, theta=10000).to(GPU_ID)

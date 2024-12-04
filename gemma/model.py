@@ -312,15 +312,15 @@ class GemmaAttention(nn.Module):
         q = q*self.scaling
 
         scores = torch.matmul(q, k.transpose(2, 3))
-        if (
-            self.attn_type == gemma_config.AttentionType.LOCAL_SLIDING
-            and self.sliding_window_size is not None
-        ):
-            all_ones = torch.ones_like(mask)
-            sliding_mask = torch.triu(
-                all_ones, -1 * self.sliding_window_size + 1
-            ) * torch.tril(all_ones, self.sliding_window_size - 1)
-            mask = torch.where(sliding_mask == 1, mask, -2.3819763e38)
+        # if (
+        #     self.attn_type == gemma_config.AttentionType.LOCAL_SLIDING
+        #     and self.sliding_window_size is not None
+        # ):
+        #     all_ones = torch.ones_like(mask)
+        #     sliding_mask = torch.triu(
+        #         all_ones, -1 * self.sliding_window_size + 1
+        #     ) * torch.tril(all_ones, self.sliding_window_size - 1)
+        #     mask = torch.where(sliding_mask == 1, mask, -2.3819763e38)
         if self.attn_logit_softcapping is not None:
             scores = scores / self.attn_logit_softcapping
             scores = torch.tanh(scores)
