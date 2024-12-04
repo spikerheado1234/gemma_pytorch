@@ -8,13 +8,10 @@ import pdb
 
 def decoder_only(tokenizer, config, 
                  device, GemmaDecoder : GemmaDecoderLayer,
-                 tokens : torch.Tensor):
-    is_str_prompt = isinstance(tokens, str)
-    if is_str_prompt:
-        prompts = [tokens]
+                 batch_size : int, seq_length: int,
+                 output_len : int):
 
-    batch_size = len(prompts)
-    prompt_tokens = [tokenizer.encode(prompt) for prompt in prompts]
+    prompt_tokens = [[2 for _ in range(seq_length)] for _ in range(batch_size)]
     min_prompt_len = min(len(p) for p in prompt_tokens)
     max_prompt_len = max(len(p) for p in prompt_tokens)
     max_seq_len = max_prompt_len + output_len
@@ -104,21 +101,17 @@ def decoder_only(tokenizer, config,
 
 if __name__ == '__main__':
     # Parameters.
-    true_seq_length = 4096
-    seq_length = true_seq_length - 10
+    batch_size = 1
+    seq_length = 11
     output_len : int = 1
 
     ## Test inference on gemma model.
     model_config = get_config_for_2b_v2_attn_only()
     #model_config = get_config_for_2b_v2()
     ## Make 32 bit precision and turn of logit softcapping.
+    tknizer = tokenizer.Tokenizer(model_config.tokenizer)
     model_config.dtype = 'float32'
     model_config.attn_logit_softcapping = None
-    tknizer = tokenizer.Tokenizer(model_config.tokenizer)
-    prompt = ['s ' for _ in range(seq_length)]
-    prompt = ''.join(prompt)
-    prompt_length = len(tknizer.encode(prompt))
-    model_config.prompt_length = prompt_length 
     print(model_config)
     GPU_ID : int = 0
     gemma_decoder = GemmaDecoderLayer(
@@ -127,6 +120,6 @@ if __name__ == '__main__':
     ## Random input.
 
     ## We call our attn_only function.
-    decoder_only(tknizer, model_config, GPU_ID, gemma_decoder, prompt)
-    decoder_only(tknizer, model_config, GPU_ID, gemma_decoder, prompt)
-    decoder_only(tknizer, model_config, GPU_ID, gemma_decoder, prompt)
+    decoder_only(tknizer, model_config, GPU_ID, gemma_decoder, batch_size, seq_length, output_len)
+    decoder_only(tknizer, model_config, GPU_ID, gemma_decoder, batch_size, seq_length, output_len)
+    decoder_only(tknizer, model_config, GPU_ID, gemma_decoder, batch_size, seq_length, output_len)
